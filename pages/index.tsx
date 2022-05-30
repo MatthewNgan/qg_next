@@ -132,7 +132,7 @@ export default function Home() {
       headers: {
         'Content-Type': 'application/json'
       }
-    }).then(r => r.json());
+    }).then(async (r) => await r.json());
     setPaperLink(res.link);
     setPaperId(res.id);
     if (generateFormButton.current) {
