@@ -182,7 +182,7 @@ export default function Home() {
                   <div className='px-6'>
                     {
                       questionChoices.map((choice, index) =>
-                        <div className={`py-6${index < questionChoices.length - 1 ? ' border-b-2' : ''}`}>
+                        <div key={index} className={`py-6${index < questionChoices.length - 1 ? ' border-b-2' : ''}`}>
                           <div className='flex flex-row justify-between items-center mb-4'>
                             <h3 className='text-2xl'>Question {index + 1}</h3>
                             <input type='checkbox' className='p-3 rounded-md text-neutral-900 focus:ring-0' onChange={e => {
@@ -216,7 +216,7 @@ export default function Home() {
                 <h2 className='text-2xl font-bold w-full text-center py-4 border-neutral-900 border-b-4'>Selected Questions</h2>
                 {
                   selectedQuestions.map((choice, index) =>
-                    <div className='px-6'>
+                    <div key={index} className='px-6'>
                       <div className={`py-6 border-b-2`}>
                         <div className='flex flex-row justify-between items-center mb-4'>
                           <h3 className='text-2xl'>Question {index + 1}</h3>
