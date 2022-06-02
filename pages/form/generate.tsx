@@ -112,9 +112,13 @@ export default function GenerateForm() {
       generateFormButton.current.disabled = true;
       generateFormButton.current.innerText = 'Generating...';
     }
+    let date = `${examDate.year}/${examDate.month}/${examDate.day}`
+    let by = `${teacherName !== '' ? teacherName : 'unknown'}`
+    let docTitle = `${date}_${by}_${paperName !== '' ? paperName : 'untitled'}`;
+    let title = `${paperName !== '' ? paperName : 'untitled'}`;
     let body = {
-      docTitle: `${examDate.year}/${examDate.month}/${examDate.day}_${teacherName !== '' ? teacherName : 'unknown'}_${paperName !== '' ? paperName : 'untitled'}`,
-      title: `${paperName !== '' ? paperName : 'untitled'}`,
+      docTitle: docTitle,
+      title: title,
       questions: []
     };
     for (const [index, question] of Object.entries(selectedQuestions)) {
@@ -136,6 +140,16 @@ export default function GenerateForm() {
     }).then(async (r) => await r.json());
     setPaperLink(res.link);
     setPaperId(res.id);
+    if (localStorage.getItem('formList') != null) {
+      let formList: Form[] = JSON.parse(localStorage.getItem('formList'));
+      formList.push({
+        id: res.id,
+        title: title,
+        date: date,
+        by: by
+      });
+      localStorage.setItem('formList', JSON.stringify(formList));
+    }
     if (generateFormButton.current) {
       generateFormButton.current.disabled = false;
       generateFormButton.current.innerText = 'Generate Google Form';
