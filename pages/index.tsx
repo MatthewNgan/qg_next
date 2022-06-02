@@ -91,7 +91,7 @@ export default function Home() {
       headers: {
         'Content-Type': 'application/json'
       }
-    }).then(r => r.json());
+    }).then(async (r) => await r.json());
     console.log(res);
     let questionChoices = [];
     for (let q of res.outputs) {
