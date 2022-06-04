@@ -196,7 +196,7 @@ export default function GenerateForm() {
                     <div className='px-6 flex flex-col'>
                       {
                         questionChoices.length > 0 &&
-                        <button className='ml-auto text-xl rounded-lg font-bold' onClick={() => {
+                        <button className='ml-auto text-xl rounded-lg font-bold hover:underline' onClick={() => {
                           setSelectedQuestions(questionChoices);
                           setQuestionChoices([]);
                         }}>Select All</button>
