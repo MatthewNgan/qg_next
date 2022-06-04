@@ -184,7 +184,7 @@ export default function GenerateForm() {
               <div className='border-4 border-neutral-900 rounded-lg'>
                 <h2 className='text-2xl font-bold w-full text-center py-4 border-neutral-900 border-b-4'>Generate Questions</h2>
                 <div className='mx-4 py-4 flex flex-col items-center gap-4'>
-                  <textarea defaultValue={text} className='p-4 h-96 resize-none border-4 border-neutral-900 rounded-lg w-full' placeholder='Past your article here' onChange={(e) => setText(e.target.value)}>
+                  <textarea defaultValue={text} className='p-4 h-96 resize-none border-4 border-neutral-900 rounded-lg w-full' placeholder='Paste your article here' onChange={(e) => setText(e.target.value)}>
                   </textarea>
                   <button ref={generateButton} className='px-6 py-4 leading-none border-4 border-neutral-900 bg-blue-300 rounded-full font-bold text-2xl disabled:bg-neutral-400' onClick={(e) => {
                     generateQuestions(text);
