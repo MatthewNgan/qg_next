@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <div className='min-h-screen flex flex-col'>
       <Header />
-      <div className='container mx-auto flex p-4 items-center flex-col justify-center gap-12 flex-grow'>
+      <div className='container mx-auto flex px-6 items-center flex-col justify-center gap-12 flex-grow text-center'>
         <h1 className='text-5xl font-bold'>
           Generate questions for text with just a few clicks.
         </h1>

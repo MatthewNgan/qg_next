@@ -18,7 +18,7 @@ export default function Header() {
         <title>Quetsion Generator</title>
         <meta name='description' content='A question generator by AI' />
       </Head>
-      <header className='bg-slate-500 sticky top-0 w-full'>
+      <header className='bg-slate-500 sticky top-0 w-full z-50'>
         <div className='container mx-auto p-6 flex flex-row justify-between'>
         <h1 className='text-4xl font-bold text-white'>
           <Link href='/'>

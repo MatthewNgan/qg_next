@@ -7,6 +7,7 @@ export default function Dashboard () {
 
   const [formList, setFormList] = React.useState<Form[]>([]);
   const [token, setToken] = React.useState<string>(null);
+  const [error, setError] = React.useState<string>(null);
 
   const router = useRouter();
 
@@ -31,13 +32,20 @@ export default function Dashboard () {
 
   React.useEffect(() => {
     if (token != null) {
-      fetch(`http://${process.env.GOOGLE_FORM_API_SERVER}/forms`, {
+      fetch(`/api/getAllForms`, {
         method: 'GET',
         headers: {
           Authorization: token
         }
-      }).then(res => res.json()).then(data => {
+      }).then(res => {
+        if (res.status !== 200) throw res.statusText
+        return res.json()
+      }).then(data => {
         setFormList(data);
+        setError('No forms');
+      }).catch(error => {
+        setError(error);
+        console.log(error);
       });
     }
   }, [token])
@@ -61,9 +69,9 @@ export default function Dashboard () {
               {
                 formList.length > 0 ?
                 formList.map((item) => (
-                  <Link href={`/form/info/${item.form_id}`}>
+                  <Link href={`/form/info/${item.form_id}`} key={item.form_id}>
                     <a>
-                      <div key={item.form_id} className='group p-4 border rounded-lg'>
+                      <div className='group p-4 border rounded-lg'>
                         <h3 className='text-xl font-bold group-hover:underline'>{item.title}</h3>
                         <div>
                           By: {item.by}
@@ -75,7 +83,10 @@ export default function Dashboard () {
                     </a>
                   </Link>
                 ))
-                : <div>No form</div>
+                : ( error != null ?
+                  <div className='col-span-full'>{error.toString()}</div>
+                  : <div className='col-span-full'>Loading...</div>
+                )
               }
             </div>
             <button className='p-4 bg-red-600 text-white rounded-lg hover:underline' onClick={() => {
