@@ -8,6 +8,6 @@ export default async function handler(req, res) {
     }).then(response => {
       if (response.status !== 200) throw response.statusText
       return response.json()
-    }).then(data => res.status(200).json(data)).catch(error => res.status(500).statusText(error));
+    }).then(data => res.status(200).json(data)).catch(error => res.status(500).send(error));
   }
 }

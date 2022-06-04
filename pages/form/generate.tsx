@@ -102,7 +102,7 @@ export default function GenerateForm() {
       generateButton.current.disabled = true;
       generateButton.current.innerText = 'Generating...';
     }
-    const res = await fetch(`/api/fetchQuestion`, {
+    fetch(`/api/fetchQuestion`, {
       method: 'POST',
       body: JSON.stringify({
         text: text
@@ -110,19 +110,25 @@ export default function GenerateForm() {
       headers: {
         'Content-Type': 'application/json'
       }
-    }).then(async (r) => await r.json());
-    console.log(res);
-    let questionChoices = [];
-    for (let q of res.outputs) {
-      q.point = 0;
-      questionChoices.push(q);
-    }
-    setQuestionChoices(questionChoices);
-    setSelectedQuestions([]);
-    if (generateButton.current) {
-      generateButton.current.disabled = false;
-      generateButton.current.innerText = 'Generate Questions';
-    }
+    }).then(async r => {
+      if (generateButton.current) {
+        generateButton.current.disabled = false;
+        generateButton.current.innerText = 'Generate Questions';
+      }
+      if (r.status !== 200) throw await r.text();
+      return r.json();
+    }).then(res => {
+      console.log(res);
+      let questionChoices = [];
+      for (let q of res.outputs) {
+        q.point = 0;
+        questionChoices.push(q);
+      }
+      setQuestionChoices(questionChoices);
+      setSelectedQuestions([]);
+    }).catch(e => {
+      console.log(e);
+    });
   };
 
   const generateForm = async () => {
@@ -159,7 +165,10 @@ export default function GenerateForm() {
         'Content-Type': 'application/json',
         'Authorization': token
       }
-    }).then(async (r) => await r.json());
+    }).then(async r => {
+      if (r.status !== 200) throw await r.text();
+      return await r.json();
+    }).catch(e => console.log(e));
     setPaperLink(res.link);
     setPaperId(res.id);
     if (generateFormButton.current) {
