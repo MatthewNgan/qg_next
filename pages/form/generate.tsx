@@ -181,68 +181,87 @@ export default function GenerateForm() {
         <div className='container mx-auto'>
           <div className='grid grid-cols-2 gap-6'>
             <div className='flex flex-col gap-6'>
-              <div className='flex flex-col px-8 py-6 gap-2 border-4 rounded-lg border-neutral-900'>
-                <input name='paper_name' type='text' placeholder='Name of exam paper' className='p-3 border rounded-md' onChange={(e) => setPaperName(e.target.value)} />
-                <input name='teacher_name' type='text' placeholder='Name of teacher' className='p-3 border rounded-md' onChange={(e) => setTeacherName(e.target.value)} />
-                <div>
-                  <div className='px-1 mb-2'>Expected exam date</div>
-                  <DateSelect year={examDate.year} month={examDate.month} day={examDate.day} setExamDate={setExamDate} />
+              <div className='border-4 border-neutral-900 rounded-lg'>
+                <h2 className='text-2xl font-bold w-full text-center py-4 border-neutral-900 border-b-4'>Generate Questions</h2>
+                <div className='mx-4 py-4 flex flex-col items-center gap-4'>
+                  <textarea defaultValue={text} className='p-4 h-96 resize-none border-4 border-neutral-900 rounded-lg w-full' placeholder='Past your article here' onChange={(e) => setText(e.target.value)}>
+                  </textarea>
+                  <button ref={generateButton} className='px-6 py-4 leading-none border-4 border-neutral-900 bg-blue-300 rounded-full font-bold text-2xl disabled:bg-neutral-400' onClick={(e) => {
+                    generateQuestions(text);
+                  }}>Generate Questions</button>
                 </div>
-                <div>
-                  {/* <div className='px-1 mb-2'>Exam grade</div>
-                <select className='border border-neutral-400 bg-neutral-100 rounded-md p-1 flex-grow'>
-                  <option disabled selected>grade</option>
-                </select> */}
-                </div>
-              </div>
-              <textarea defaultValue={text} className='border-4 border-neutral-900 rounded-lg p-8 h-96 resize-none' placeholder='Past your article here' onChange={(e) => setText(e.target.value)}>
-              </textarea>
-              <div className='flex justify-center'>
-                <button ref={generateButton} className='px-6 py-4 leading-none border-4 border-neutral-900 bg-blue-300 rounded-full font-bold text-2xl disabled:bg-neutral-400' onClick={(e) => {
-                  generateQuestions(text);
-                }}>Generate Questions</button>
+                {
+                  questionChoices.length > 0 &&
+                  <div className='flex flex-col rounded-lg'>
+                    <div className='px-6 flex flex-col'>
+                      {
+                        questionChoices.length > 0 &&
+                        <button className='ml-auto text-xl rounded-lg font-bold' onClick={() => {
+                          setSelectedQuestions(questionChoices);
+                          setQuestionChoices([]);
+                        }}>Select All</button>
+                      }
+                      {
+                        questionChoices.map((choice, index) =>
+                          <div key={index} className={`py-6${index < questionChoices.length - 1 ? ' border-b-2' : ''}`}>
+                            <div className='flex flex-row justify-between items-center mb-4'>
+                              <h3 className='text-2xl'>Question {index + 1}</h3>
+                              <input type='checkbox' className='p-3 rounded-md text-neutral-900 focus:ring-0' onChange={e => {
+                                if (e.target.checked) {
+                                  setSelectedQuestions([
+                                    ...selectedQuestions,
+                                    choice
+                                  ]);
+                                  setQuestionChoices([
+                                    ...questionChoices.slice(0, index),
+                                    ...questionChoices.slice(index + 1)
+                                  ]);
+                                  e.target.checked = false;
+                                }
+                              }} />
+                            </div>
+                            <div className='pl-2'>
+                              <div>{choice.question}</div>
+                              <div className='flex flex-row gap-2 items-center mt-2'>
+                                <div>Answer:</div>
+                                <div className='font-bold'>{choice.answer}</div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      }
+                    </div>
+                  </div>
+                }
               </div>
             </div>
             <div className='flex flex-col gap-6'>
-              {
-                questionChoices.length > 0 &&
-                <div className='flex flex-col border-neutral-900 border-4 rounded-lg'>
-                  <h2 className='text-2xl font-bold w-full text-center py-4 border-neutral-900 border-b-4'>Question Choices</h2>
-                  <div className='px-6'>
-                    {
-                      questionChoices.map((choice, index) =>
-                        <div key={index} className={`py-6${index < questionChoices.length - 1 ? ' border-b-2' : ''}`}>
-                          <div className='flex flex-row justify-between items-center mb-4'>
-                            <h3 className='text-2xl'>Question {index + 1}</h3>
-                            <input type='checkbox' className='p-3 rounded-md text-neutral-900 focus:ring-0' onChange={e => {
-                              if (e.target.checked) {
-                                setSelectedQuestions([
-                                  ...selectedQuestions,
-                                  choice
-                                ]);
-                                setQuestionChoices([
-                                  ...questionChoices.slice(0, index),
-                                  ...questionChoices.slice(index + 1)
-                                ]);
-                                e.target.checked = false;
-                              }
-                            }} />
-                          </div>
-                          <div className='pl-2'>
-                            <div>{choice.question}</div>
-                            <div className='flex flex-row gap-2 items-center mt-2'>
-                              <div>Answer:</div>
-                              <div className='font-bold'>{choice.answer}</div>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    }
+              <div className='flex flex-col border-neutral-900 border-4 rounded-lg'>
+                <h2 className='text-2xl font-bold w-full text-center py-4 border-neutral-900 border-b-4 relative flex items-center justify-center'>
+                  Selected Questions
+                  {
+                    paperLink !== '' &&
+                    <Link href={paperLink}>
+                      <a className='absolute right-4 text-xl hover:underline px-4 py-2 leading-none border-2 border-neutral-900 bg-red-300 rounded-full disabled:bg-neutral-400'>
+                        Link
+                      </a>
+                    </Link>
+                  }
+                </h2>
+                <div className='flex flex-col mx-6 py-6 gap-2 border-b-2'>
+                  <input name='paper_name' type='text' placeholder='Name of exam paper' className='p-3 border rounded-md' onChange={(e) => setPaperName(e.target.value)} />
+                  <input name='teacher_name' type='text' placeholder='Name of teacher' className='p-3 border rounded-md' onChange={(e) => setTeacherName(e.target.value)} />
+                  <div>
+                    <div className='px-1 mb-2'>Expected exam date</div>
+                    <DateSelect year={examDate.year} month={examDate.month} day={examDate.day} setExamDate={setExamDate} />
+                  </div>
+                  <div>
+                    {/* <div className='px-1 mb-2'>Exam grade</div>
+                  <select className='border border-neutral-400 bg-neutral-100 rounded-md p-1 flex-grow'>
+                    <option disabled selected>grade</option>
+                  </select> */}
                   </div>
                 </div>
-              }
-              <div className='flex flex-col border-neutral-900 border-4 rounded-lg'>
-                <h2 className='text-2xl font-bold w-full text-center py-4 border-neutral-900 border-b-4'>Selected Questions</h2>
                 {
                   selectedQuestions.map((choice, index) =>
                     <div key={index} className='px-6'>
@@ -325,15 +344,10 @@ export default function GenerateForm() {
                 <>
                   <div className='flex flex-col items-center'>
                     {
-                      paperLink === '' ?
-                        <button ref={generateFormButton} className='px-6 py-4 leading-none border-4 border-neutral-900 bg-purple-300 rounded-full font-bold text-2xl disabled:bg-neutral-400' onClick={(e) => { generateForm() }}>
-                          Generate Google Form
-                        </button>
-                        : <Link href={paperLink}>
-                          <a className='mt-4 text-2xl hover:underline px-6 py-4 leading-none border-4 border-neutral-900 bg-red-300 rounded-full font-bold disabled:bg-neutral-400'>
-                            Link to Form
-                          </a>
-                        </Link>
+                      paperLink === '' &&
+                      <button ref={generateFormButton} className='px-6 py-4 leading-none border-4 border-neutral-900 bg-purple-300 rounded-full font-bold text-2xl disabled:bg-neutral-400' onClick={(e) => { generateForm() }}>
+                        Generate Google Form
+                      </button>
                     }
                   </div>
                 </>
