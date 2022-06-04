@@ -1,7 +1,17 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import React from 'react';
 
 export default function Header() {
+
+  const [loggedIn, setLoggedIn] = React.useState(false);
+
+  React.useEffect(() => {
+    if (localStorage.getItem('token') != null && localStorage.getItem('token') !== '') {
+      setLoggedIn(true);
+    }
+  });
+
   return (
     <>
       <Head>
@@ -18,15 +28,20 @@ export default function Header() {
           </Link>
           </h1>
         <div className='flex flex-row gap-4 items-center'>
-          <Link href='/login/exist'>
-            <a className='text-white hover:underline'>Login</a>
-          </Link>
-          <Link href='/login/new'>
-            <a className='text-white hover:underline'>Signup</a>
-          </Link>
-          <Link href='/form/dashboard'>
-            <a className='text-white hover:underline'>Dashboard</a>
-          </Link>
+          {
+            loggedIn ? 
+            <Link href='/form/dashboard'>
+              <a className='text-white hover:underline'>Dashboard</a>
+            </Link>
+            : <>
+              <Link href='/login/exist'>
+                <a className='text-white hover:underline'>Login</a>
+              </Link>
+              <Link href='/login/new'>
+                <a className='text-white hover:underline'>Signup</a>
+              </Link>
+            </>
+          }
         </div>
         </div>
       </header>

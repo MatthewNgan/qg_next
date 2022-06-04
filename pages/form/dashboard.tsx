@@ -1,10 +1,14 @@
 import Header from '../template/header';
 import Link from 'next/link';
 import React from 'react';
+import { useRouter } from 'next/router';
 
 export default function Dashboard () {
 
   const [formList, setFormList] = React.useState<Form[]>([]);
+  const [token, setToken] = React.useState<string>(null);
+
+  const router = useRouter();
 
   const initFormList = () => {
     localStorage.setItem('formList', JSON.stringify(formList));
@@ -18,31 +22,48 @@ export default function Dashboard () {
   }
 
   React.useEffect(() => {
-    refreshFormList();
+    if (localStorage.getItem('token') != null && localStorage.getItem('token') !== '') {
+      setToken(localStorage.getItem('token'));
+    } else {
+      router.push('/login/exist');
+    }
   }, []);
 
+  React.useEffect(() => {
+    if (token != null) {
+      fetch(`http://${process.env.GOOGLE_FORM_API_SERVER}/forms`, {
+        method: 'GET',
+        headers: {
+          Authorization: token
+        }
+      }).then(res => res.json()).then(data => {
+        setFormList(data);
+      });
+    }
+  }, [token])
+
   return (
-    <div>
+    <div className='min-h-screen flex flex-col'>
       <Header />
-      <div className='container mx-auto'>
-        <div className='p-4 flex flex-col gap-8'>
+      <div className='container mx-auto flex-grow'>
+        <div className='px-4 py-8 flex flex-col gap-8'>
           <h1 className='text-5xl'>
             Dashboard
           </h1>
           <div>
             <Link href='/form/generate'>
-              <a className='p-4 bg-red-500 text-white rounded-lg hover:underline'>Generate a form</a>
+              <a className='p-4 bg-green-500 text-white rounded-lg hover:underline'>Generate a form</a>
             </Link>
           </div>
           <div>
             <h2 className='text-2xl mb-4'>Recent forms</h2>
-            <div className='grid grid-cols-3'>
+            <div className='grid grid-cols-3 gap-4 mb-4'>
               {
                 formList.length > 0 ?
                 formList.map((item) => (
-                  <Link href={`/form/info/${item.id}`}>
+                  <Link href={`/form/info/${item.form_id}`}>
                     <a>
-                      <div key={item.id} className='group p-4 border rounded-lg'>
+                      <div key={item.form_id} className='group p-4 border rounded-lg'>
                         <h3 className='text-xl font-bold group-hover:underline'>{item.title}</h3>
                         <div>
                           By: {item.by}
@@ -57,6 +78,12 @@ export default function Dashboard () {
                 : <div>No form</div>
               }
             </div>
+            <button className='p-4 bg-red-600 text-white rounded-lg hover:underline' onClick={() => {
+              localStorage.removeItem('token');
+              router.push('/');
+            }}>
+              Logout
+            </button>
           </div>
         </div>
       </div>

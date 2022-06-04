@@ -25,28 +25,45 @@ function range(start: number, stop: number, step: number = 1) {
 function DateSelect(props: { day: number; month: number; year: number, setExamDate: Function }) {
 
   const days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
   const { day, month, year, setExamDate } = props;
 
   return (
     <div className='flex flex-row gap-4'>
-      <select name='exam_day' className='border border-neutral-400 bg-neutral-100 rounded-md p-1 flex-grow'>
+      <select name='exam_day' className='border border-neutral-400 bg-neutral-100 rounded-md p-1 flex-grow' defaultValue={new Date().getDate() < 10 ? `0${new Date().getDate()}` : new Date().getDate()} onChange={(e) => {
+        setExamDate({
+          year: year,
+          month: month,
+          day: parseInt(e.target.value)
+        })
+      }}>
         {
-          range(day, days_in_month[month] + 1).map(d => <option key={`day_${d}`} value={d}>
+          range(1, days_in_month[month] + 1).map(d => <option key={`day_${d}`} value={d}>
             {d}
           </option>)
         }
       </select>
-      <select name='exam_month' className='border border-neutral-400 bg-neutral-100 rounded-md p-1 flex-grow'>
+      <select name='exam_month' className='border border-neutral-400 bg-neutral-100 rounded-md p-1 flex-grow' defaultValue={new Date().getMonth() + 1 < 10 ? `0${new Date().getMonth() + 1}` : new Date().getMonth() + 1} onChange={(e) => {
+        setExamDate({
+          year: year,
+          month: parseInt(e.target.value),
+          day: day
+        })
+      }}>
         {
-          range(month + 1, 13).map(m => <option key={`month_${m}`} value={m}>
+          range(1, 13).map(m => <option key={`month_${m}`} value={m}>
             {m}
           </option>)
         }
       </select>
-      <select name='exam_year' className='border border-neutral-400 bg-neutral-100 rounded-md p-1 flex-grow'>
+      <select name='exam_year' className='border border-neutral-400 bg-neutral-100 rounded-md p-1 flex-grow' defaultValue={year} onChange={(e) => {
+        setExamDate({
+          year: parseInt(e.target.value),
+          month: month,
+          day: day
+        })
+      }}>
         {
-          range(year, year + 4).map(y => <option key={`year_${y}`} value={y}>
+          range(new Date().getFullYear(), year + 4).map(y => <option key={`year_${y}`} value={y}>
             {y}
           </option>)
         }
@@ -65,7 +82,7 @@ export default function GenerateForm() {
 
   const [examDate, setExamDate] = React.useState({
     year: new Date().getFullYear(),
-    month: new Date().getMonth(),
+    month: new Date().getMonth()+1,
     day: new Date().getDate(),
   });
   const [text, setText] = React.useState('');
@@ -73,6 +90,7 @@ export default function GenerateForm() {
   const [paperName, setPaperName] = React.useState('');
   const [paperLink, setPaperLink] = React.useState('');
   const [paperId, setPaperId] = React.useState('');
+  const [token, setToken] = React.useState(null);
 
   const [questionChoices, setQuestionChoices] = React.useState<QuestionChoice[]>([]);
   const [selectedQuestions, setSelectedQuestions] = React.useState<QuestionChoice[]>([]);
@@ -118,7 +136,10 @@ export default function GenerateForm() {
     let title = `${paperName !== '' ? paperName : 'untitled'}`;
     let body = {
       docTitle: docTitle,
+      descr: text,
       title: title,
+      date: date,
+      by: by,
       questions: []
     };
     for (const [index, question] of Object.entries(selectedQuestions)) {
@@ -135,31 +156,28 @@ export default function GenerateForm() {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': token
       }
     }).then(async (r) => await r.json());
     setPaperLink(res.link);
     setPaperId(res.id);
-    if (localStorage.getItem('formList') != null) {
-      let formList: Form[] = JSON.parse(localStorage.getItem('formList'));
-      formList.push({
-        id: res.id,
-        title: title,
-        date: date,
-        by: by
-      });
-      localStorage.setItem('formList', JSON.stringify(formList));
-    }
     if (generateFormButton.current) {
       generateFormButton.current.disabled = false;
       generateFormButton.current.innerText = 'Generate Google Form';
     }
   }
 
+  React.useEffect(() => {
+    if (localStorage.getItem('token') != null && localStorage.getItem('token') !== '') {
+      setToken(localStorage.getItem('token'));
+    }
+  }, []);
+
   return (
-    <div>
+    <div className='min-h-screen flex flex-col'>
       <Header />
-      <main className='py-20 px-6'>
+      <div className='py-20 px-6 flex-grow'>
         <div className='container mx-auto'>
           <div className='grid grid-cols-2 gap-6'>
             <div className='flex flex-col gap-6'>
@@ -323,7 +341,7 @@ export default function GenerateForm() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
 
       <footer>
       </footer>

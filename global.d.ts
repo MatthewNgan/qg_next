@@ -1,10 +1,10 @@
 export {};
 declare global {
   interface Form {
-    id: string;
+    form_id: string;
+    link: string;
     title: string;
     by: string;
     date: string;
   }
 }
-  

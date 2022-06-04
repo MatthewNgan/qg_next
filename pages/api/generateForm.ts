@@ -5,7 +5,8 @@ export default async function handler(req, res) {
       body: JSON.stringify(req.body),
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': req.headers.authorization
       }
     }).then(response => response.json());
     res.status(200).json(data);
