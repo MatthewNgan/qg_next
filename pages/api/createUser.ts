@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    await fetch(`http://${process.env.GOOGLE_FORM_API_SERVER}/user/create`, {
+    await fetch(`http://${process.env.BACKEND_SERVER}/user/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

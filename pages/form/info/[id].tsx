@@ -2,6 +2,8 @@ import Header from '../../template/header';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React from 'react';
+import range from '../../../utils/range';
+import ReactPaginate from 'react-paginate';
 
 interface Answer {
   value: string;
@@ -34,12 +36,12 @@ export default function Info() {
   const id = React.useRef(router.query.id);
   const [token, setToken] = React.useState<string>(null);
 
-  const [response, setResponse] = React.useState<Response>(null);
-  const [title, setTitle] = React.useState<string>(null);
+  const [responses, setResponses] = React.useState<Response[]>(null);
   const [form, setForm] = React.useState<any>(null);
-  const [description, setDescription] = React.useState<string>(null);
-  const [url, setUrl] = React.useState<string>(null);
   const [error, setError] = React.useState<string>(null);
+  const [currentRes, setCurrentRes] = React.useState(0);
+  const [formLoaded, setFormLoaded] = React.useState(false);
+  const [resLoaded, setResLoaded] = React.useState(false);
 
   React.useEffect(() => {
     if (localStorage.getItem('token') != null && localStorage.getItem('token') !== '') {
@@ -53,17 +55,36 @@ export default function Info() {
     if (id.current != null && token != null) {
       fetch(`/api/getForm?id=${id.current}`, {
         method: 'GET', headers: {Authorization: token}
-      }).then(res => res.json()).then(data => {
-        setForm(data);
-      }).catch(error => {
-        setError(error);
-        console.log(error);
-      });
+      }).then(async r => {
+        setFormLoaded(true);
+        if (r.status !== 200) throw await r.text();
+        return r.json();
+      }).then(data => setForm(data)).catch(err => setError(err));
       fetch(`/api/getResponse?id=${id.current}`, {
         method: 'GET', headers: {Authorization: token}
-      }).then(res => res.json()).then(data => setResponse(data));
+      }).then(async r => {
+        setResLoaded(true);
+        if (r.status !== 200) throw await r.text();
+        return r.json();
+      }).then(data => setResponses(data)).catch(err => setError(err));;
     }
   }, [id, token]);
+
+  const ResponseItem = React.useCallback(({ response }) => {
+    return (<>
+      <div className='font-bold mb-4 text-xl'>Total score: {response.totalScore}</div>
+      <div className='flex flex-col gap-4'>
+        {
+          response.questions.map((question, id) => <div>
+            <h3 className='font-lg font-bold'>Q{id + 1}. {question.title}</h3>
+            <div>Response: {question.answer[0].value}</div>
+            <div>Correct answer: {question.correctAnswer.answers[0].value}</div>
+            <div>Score: {question.score}</div>
+          </div>)
+        }
+      </div>
+    </>)
+  }, []);
 
   return (
     <div className='min-h-screen flex flex-col'>
@@ -73,26 +94,62 @@ export default function Info() {
           form != null ?
           <>
             <h1 className='text-5xl font-bold'>{form.title}</h1>
+            <Link href={form.link} target='_blank' rel='noreferrer noopener'>
+              <a className='hover:underline'>
+                Link to form
+              </a>
+            </Link>
             {
               form.text != null && form.text !== '' &&
               <details>
                 <summary className='hover:underline cursor-pointer'>
                   Show the text
                 </summary>
-                {
-                  form.text.slice().split('\n').map((text, id) => <div key={`para_${id}`} className='my-2 text-gray-500'>
-                    {text}
-                  </div>)
-                }
+                <div className='my-2 w-full border-4 border-neutral-800 rounded-lg p-4 cursor-text'>{form.text}</div>
               </details>
             }
-            <Link href={form.link}>
+            {
+              responses != null ? 
+                responses.length > 0 ? <div className='flex flex-col items-start'>
+                  <h2 className='text-4xl font-bold'>Responses</h2>
+                  <ReactPaginate
+                    pageCount={responses.length}
+                    onPageChange={(e) => setCurrentRes(e.selected)}
+                    nextLabel='>'
+                    previousLabel='<'
+                    containerClassName='flex flex-row border rounded-lg self-center overflow-hidden'
+                    pageLinkClassName='p-4 block leading-none border-r cursor-pointer hover:underline last:border-none'
+                    nextLinkClassName='p-4 block leading-none border-r cursor-pointer hover:underline last:border-none'
+                    previousLinkClassName='p-4 block leading-none border-r cursor-pointer hover:underline last:border-none'
+                    activeClassName='bg-neutral-700 text-white'
+                    breakLinkClassName='p-4 block leading-none border-r cursor-pointer hover:underline last:border-none'
+                    forcePage={currentRes}
+                  />
+                  <ResponseItem response={responses[currentRes]} />
+                  <ReactPaginate
+                    pageCount={responses.length}
+                    onPageChange={(e) => setCurrentRes(e.selected)}
+                    nextLabel='>'
+                    previousLabel='<'
+                    containerClassName='flex flex-row border rounded-lg self-center overflow-hidden'
+                    pageLinkClassName='p-4 block leading-none border-r cursor-pointer hover:underline last:border-none'
+                    nextLinkClassName='p-4 block leading-none border-r cursor-pointer hover:underline last:border-none'
+                    previousLinkClassName='p-4 block leading-none border-r cursor-pointer hover:underline last:border-none'
+                    activeClassName='bg-neutral-700 text-white'
+                    breakLinkClassName='p-4 block leading-none border-r cursor-pointer hover:underline last:border-none'
+                    forcePage={currentRes}
+                  />
+                </div>
+                : <h2 className='text-2xl'>No response yet</h2>
+              : resLoaded ? <h2 className='text-2xl'>{error}</h2> : <h2 className='text-2xl'>Loading...</h2>
+            }
+            <Link href={form.link} target='_blank'>
               <a className='hover:underline'>
                 Link to form
               </a>
             </Link>
           </>
-          : <h2 className='text-4xl'>Loading...</h2>
+          : formLoaded ? <h2 className='text-2xl'>{error != null ? error : ''}</h2> : <h2 className='text-2xl'>Loading...</h2>
         }
       </div>
     </div>

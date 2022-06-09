@@ -2,75 +2,7 @@ import Head from 'next/head'
 import Link from 'next/link';
 import React from 'react';
 import Header from '../template/header';
-
-function range(start: number, stop: number, step: number = 1) {
-  if (typeof stop == 'undefined') {
-    stop = start;
-    start = 0;
-  }
-  if (typeof step == 'undefined') {
-    step = 1;
-  }
-  if ((step > 0 && start >= stop) || (step < 0 && start <= stop)) {
-    return [];
-  }
-  var result: string[] = [];
-  for (var i = start; step > 0 ? i < stop : i > stop; i += step) {
-    result.push(i < 10 ? `0${i}` : i.toString());
-  }
-
-  return result;
-};
-
-function DateSelect(props: { day: number; month: number; year: number, setExamDate: Function }) {
-
-  const days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  const { day, month, year, setExamDate } = props;
-
-  return (
-    <div className='flex flex-row gap-4'>
-      <select name='exam_day' className='border border-neutral-400 bg-neutral-100 rounded-md p-1 flex-grow' defaultValue={new Date().getDate() < 10 ? `0${new Date().getDate()}` : new Date().getDate()} onChange={(e) => {
-        setExamDate({
-          year: year,
-          month: month,
-          day: parseInt(e.target.value)
-        })
-      }}>
-        {
-          range(1, days_in_month[month] + 1).map(d => <option key={`day_${d}`} value={d}>
-            {d}
-          </option>)
-        }
-      </select>
-      <select name='exam_month' className='border border-neutral-400 bg-neutral-100 rounded-md p-1 flex-grow' defaultValue={new Date().getMonth() + 1 < 10 ? `0${new Date().getMonth() + 1}` : new Date().getMonth() + 1} onChange={(e) => {
-        setExamDate({
-          year: year,
-          month: parseInt(e.target.value),
-          day: day
-        })
-      }}>
-        {
-          range(1, 13).map(m => <option key={`month_${m}`} value={m}>
-            {m}
-          </option>)
-        }
-      </select>
-      <select name='exam_year' className='border border-neutral-400 bg-neutral-100 rounded-md p-1 flex-grow' defaultValue={year} onChange={(e) => {
-        setExamDate({
-          year: parseInt(e.target.value),
-          month: month,
-          day: day
-        })
-      }}>
-        {
-          range(new Date().getFullYear(), year + 4).map(y => <option key={`year_${y}`} value={y}>
-            {y}
-          </option>)
-        }
-      </select>
-    </div>
-  )
-}
+import DateSelect from '../../utils/DateSelect';
 
 interface QuestionChoice {
   question: string;

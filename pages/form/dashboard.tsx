@@ -37,9 +37,9 @@ export default function Dashboard () {
         headers: {
           Authorization: token
         }
-      }).then(res => {
-        if (res.status !== 200) throw res.statusText
-        return res.json()
+      }).then(async r => {
+        if (r.status !== 200) throw await r.text();
+        return r.json();
       }).then(data => {
         setFormList(data);
         setError('No forms');
@@ -71,7 +71,7 @@ export default function Dashboard () {
                 formList.map((item) => (
                   <Link href={`/form/info/${item.form_id}`} key={item.form_id}>
                     <a>
-                      <div className='group p-4 border rounded-lg'>
+                      <div className='group p-4 border border-neutral-300 rounded-lg'>
                         <h3 className='text-xl font-bold group-hover:underline'>{item.title}</h3>
                         <div>
                           By: {item.by}

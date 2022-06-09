@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    await fetch(`http://${process.env.GOOGLE_FORM_API_SERVER}/forms`, {
+    await fetch(`http://${process.env.BACKEND_SERVER}/forms`, {
       method: 'GET',
       headers: {
         'Authorization': req.headers.authorization

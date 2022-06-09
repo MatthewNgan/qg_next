@@ -22,16 +22,19 @@ export default function Exist() {
     data.append('scope', '');
     data.append('client_id', '');
     data.append('client_secret', '');
-    fetch(`http://${process.env.GOOGLE_FORM_API_SERVER}/user/token`, {
+    fetch(`http://${process.env.BACKEND_SERVER}/user/token`, {
       method: 'POST',
       body: data,
-    }).then(res => res.json()).then(tdata => {
+    }).then(async r => {
+      if (r.status !== 200) throw await r.text();
+      return r.json();
+    }).then(tdata => {
       if (tdata.token_type != null && tdata.access_token != null) {
         localStorage.setItem('token', `${tdata.token_type} ${tdata.access_token}`);
         router.push('/form/dashboard');
-      } else {
-        setError(tdata.detail);
       }
+    }).catch((e) => {
+        setError(e);
     });
   }
 

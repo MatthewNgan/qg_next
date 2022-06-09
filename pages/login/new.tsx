@@ -13,17 +13,20 @@ export default function New() {
   
   const form = React.useRef<HTMLFormElement>(null);
   const createUser = (data: {username: string; password: string}) => {
-    fetch(`http://${process.env.GOOGLE_FORM_API_SERVER}/user/create`, {
+    fetch(`http://${process.env.BACKEND_SERVER}/user/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data)
-    }).then(res => res.json()).then(tdata => {
+    }).then(async r => {
+      if (r.status !== 200) throw await r.text();
+      return r.json();
+    }).then(tdata => {
       localStorage.setItem('token', `${tdata.token_type} ${tdata.access_token}`);
       router.push('/form/dashboard');
     });
-  }
+  };
 
   React.useEffect(() => {
     if (form != null) {
