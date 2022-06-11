@@ -140,7 +140,7 @@ export default function GenerateForm() {
       <Header />
       <div className='py-20 px-6 flex-grow'>
         <div className='container mx-auto'>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 px-6'>
             <div className='flex flex-col gap-6'>
               <div className='border-4 border-neutral-900 rounded-lg'>
                 <h2 className='text-2xl font-bold w-full text-center py-4 border-neutral-900 border-b-4'>Generate Questions</h2>
