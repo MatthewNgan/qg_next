@@ -10,6 +10,12 @@ interface QuestionChoice {
   point: number;
 }
 
+interface Feed {
+  title: string;
+  link: string;
+  content: string;
+}
+
 export default function GenerateForm() {
 
   const [examDate, setExamDate] = React.useState({
@@ -22,7 +28,9 @@ export default function GenerateForm() {
   const [paperName, setPaperName] = React.useState('');
   const [paperLink, setPaperLink] = React.useState('');
   const [paperId, setPaperId] = React.useState('');
-  const [token, setToken] = React.useState(null);
+  const [token, setToken] = React.useState<string>(null);
+  const [rssFeed, setRssFeed] = React.useState<Feed[]>([]);
+  const [rssLoaded, setRssLoaded] = React.useState(false)
 
   const [questionChoices, setQuestionChoices] = React.useState<QuestionChoice[]>([]);
   const [selectedQuestions, setSelectedQuestions] = React.useState<QuestionChoice[]>([]);
@@ -34,7 +42,7 @@ export default function GenerateForm() {
       generateButton.current.disabled = true;
       generateButton.current.innerText = 'Generating...';
     }
-    fetch(`/api/fetchQuestion`, {
+    fetch(`${process.env.COMPREHELP_SERVER}/qg`, {
       method: 'POST',
       body: JSON.stringify({
         text: text
@@ -90,7 +98,7 @@ export default function GenerateForm() {
       })
     }
     console.log(body);
-    const res = await fetch(`/api/generateForm`, {
+    fetch(`${process.env.BACKEND_SERVER}/generate`, {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {
@@ -100,19 +108,31 @@ export default function GenerateForm() {
     }).then(async r => {
       if (r.status !== 200) throw await r.text();
       return await r.json();
+    }).then(res => {
+      setPaperLink(res.link);
+      setPaperId(res.id);
+      if (generateFormButton.current) {
+        generateFormButton.current.disabled = false;
+        generateFormButton.current.innerText = 'Generate Google Form';
+      }
     }).catch(e => console.log(e));
-    setPaperLink(res.link);
-    setPaperId(res.id);
-    if (generateFormButton.current) {
-      generateFormButton.current.disabled = false;
-      generateFormButton.current.innerText = 'Generate Google Form';
-    }
   }
 
   React.useEffect(() => {
     if (localStorage.getItem('token') != null && localStorage.getItem('token') !== '') {
       setToken(localStorage.getItem('token'));
     }
+    fetch(
+      `${process.env.RSS_SERVER}/rss?url=http://feeds.bbci.co.uk/news/rss.xml&limit=3&detail=true`
+    ).then(async r => {
+      if (r.status !== 200) throw await r.text();
+      return await r.json();
+    }).then(feed => {
+      setRssLoaded(true);
+      setRssFeed(feed);
+      // setRssFeed([...rssFeed, ...feed]);
+    });
+    console.log(process.env)
   }, []);
 
   return (
@@ -124,9 +144,30 @@ export default function GenerateForm() {
             <div className='flex flex-col gap-6'>
               <div className='border-4 border-neutral-900 rounded-lg'>
                 <h2 className='text-2xl font-bold w-full text-center py-4 border-neutral-900 border-b-4'>Generate Questions</h2>
-                <div className='mx-4 py-4 flex flex-col items-center gap-4'>
-                  <textarea defaultValue={text} className='p-4 h-96 resize-none border-4 border-neutral-900 rounded-lg w-full' placeholder='Paste your article here' onChange={(e) => setText(e.target.value)}>
-                  </textarea>
+                <div className='mx-4 py-4 flex flex-col items-center gap-4 relative'>
+                  <div className='flex flex-col w-full h-96 border-4 border-neutral-900 rounded-lg overflow-hidden'>
+                    <textarea className={`flex-grow p-4 resize-none border-0${ text ? '' : ` border-b-4`} border-neutral-900 focus:border-neutral-900 focus:ring-0 w-full`} placeholder='Paste your article here' onChange={(e) => setText(e.target.value)} value={text}>
+                    </textarea>
+                    {
+                      !text && <div className='p-4 flex flex-col gap-2'>
+                        <div>or find example here (sourced from BBC RSS Feed):</div>
+                        <div className='flex flex-row flex-wrap gap-2'>
+                          {
+                            rssLoaded ? rssFeed.map((feed) => {
+                              console.log(feed);
+                              return (
+                                <div className='p-3 text-sm border rounded-lg overflow-hidden whitespace-nowrap text-ellipsis hover:underline cursor-pointer leading-none' onClick={() => {
+                                  setText(feed.content);
+                                }}>
+                                  <span className='font-bold'>BBC</span> {feed.title}
+                                </div>
+                              )
+                            }) : <div>Loading...</div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
                   <button ref={generateButton} className='px-6 py-4 leading-none border-4 border-neutral-900 bg-blue-300 rounded-full font-bold text-2xl disabled:bg-neutral-400' onClick={(e) => {
                     generateQuestions(text);
                   }}>Generate Questions</button>
@@ -144,7 +185,7 @@ export default function GenerateForm() {
                       }
                       {
                         questionChoices.map((choice, index) =>
-                          <div key={index} className={`py-6${index < questionChoices.length - 1 ? ' border-b-2' : ''}`}>
+                          <div key={index} className={`py-6 px-2${index < questionChoices.length - 1 ? ' border-b-2' : ''}`}>
                             <div className='flex flex-row justify-between items-center mb-4'>
                               <h3 className='text-2xl'>Question {index + 1}</h3>
                               <input type='checkbox' className='p-3 rounded-md text-neutral-900 focus:ring-0' onChange={e => {
@@ -161,11 +202,11 @@ export default function GenerateForm() {
                                 }
                               }} />
                             </div>
-                            <div className='pl-2'>
+                            <div>
                               <div>{choice.question}</div>
                               <div className='flex flex-row gap-2 items-center mt-2'>
                                 <div>Answer:</div>
-                                <div className='font-bold'>{choice.answer}</div>
+                                <div className='font-bold overflow-hidden text-ellipsis whitespace-nowrap'>{choice.answer}</div>
                               </div>
                             </div>
                           </div>
@@ -206,7 +247,7 @@ export default function GenerateForm() {
                 {
                   selectedQuestions.map((choice, index) =>
                     <div key={index} className='px-6'>
-                      <div className={`py-6 border-b-2`}>
+                      <div className='px-2 py-6 border-b-2'>
                         <div className='flex flex-row justify-between items-center mb-4'>
                           <h3 className='text-2xl'>Question {index + 1}</h3>
                           <input type='checkbox' className='p-3 rounded-md text-neutral-900 focus:ring-0' checked onChange={e => {
@@ -236,7 +277,7 @@ export default function GenerateForm() {
                           }} />
                           <div className='pl-2 flex flex-row gap-2 items-center justify-start mt-2'>
                             <div>Answer:</div>
-                            <input type='text' className='font-bold w-1/2 rounded-md' value={choice.answer} onChange={e => {
+                            <input type='text' className='flex-grow font-bold w-1/2 rounded-md' value={choice.answer} onChange={e => {
                               setSelectedQuestions([
                                 ...selectedQuestions.slice(0, index),
                                 {
@@ -247,7 +288,7 @@ export default function GenerateForm() {
                                 ...selectedQuestions.slice(index + 1)
                               ]);
                             }} />
-                            <div className='ml-auto'>
+                            <div className='ml-4'>
                               Points:
                               <input type='number' className='w-12 ml-2 border-0 border-b-2 border-neutral-400 h-8 p-0 focus:ring-0 focus:border-neutral-900 text-center' value={choice.point} onChange={e => {
                                 setSelectedQuestions([
