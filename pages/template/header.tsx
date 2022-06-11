@@ -23,17 +23,23 @@ export default function Header() {
         <h1 className='text-4xl font-bold text-white'>
           <Link href='/'>
             <a>
-              Question Generator
+              Question Generator (Alpha)
             </a>
           </Link>
           </h1>
         <div className='flex flex-row gap-4 items-center'>
           {
             loggedIn ? 
-            <Link href='/form/dashboard'>
-              <a className='text-white hover:underline'>Dashboard</a>
-            </Link>
-            : <>
+            <>
+              <Link href='/form/dashboard'>
+                <a className='text-white hover:underline'>Dashboard</a>
+              </Link>
+              <Link href='/user/general'>
+                <a className='text-white hover:underline'>Account</a>
+              </Link>
+            </>
+            :
+            <>
               <Link href='/login/exist'>
                 <a className='text-white hover:underline'>Login</a>
               </Link>
