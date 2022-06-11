@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    await fetch(`http://${process.env.COMPREHELP_SERVER}/qg`, {
+    await fetch(`${process.env.COMPREHELP_SERVER}/qg`, {
       method: 'POST',
       body: JSON.stringify(req.body),
       headers: {

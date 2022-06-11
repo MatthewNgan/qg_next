@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    await fetch(`http://${process.env.BACKEND_SERVER}/getresponses?form_id=${req.query.id}`, {
+    await fetch(`${process.env.BACKEND_SERVER}/getresponses?form_id=${req.query.id}`, {
       method: 'GET',
       headers: {
         'Authorization': req.headers.authorization
