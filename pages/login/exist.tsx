@@ -22,7 +22,7 @@ export default function Exist() {
     data.append('scope', '');
     data.append('client_id', '');
     data.append('client_secret', '');
-    fetch(`http://${process.env.BACKEND_SERVER}/user/token`, {
+    fetch(`${process.env.BACKEND_SERVER}/user/token`, {
       method: 'POST',
       body: data,
     }).then(async r => {

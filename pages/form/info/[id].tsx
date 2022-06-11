@@ -53,14 +53,14 @@ export default function Info() {
 
   React.useEffect(() => {
     if (id.current != null && token != null) {
-      fetch(`/api/getForm?id=${id.current}`, {
+      fetch(`${process.env.BACKEND_SERVER}/forms/${id.current}`, {
         method: 'GET', headers: {Authorization: token}
       }).then(async r => {
         setFormLoaded(true);
         if (r.status !== 200) throw await r.text();
         return r.json();
       }).then(data => setForm(data)).catch(err => setError(err));
-      fetch(`/api/getResponse?id=${id.current}`, {
+      fetch(`${process.env.BACKEND_SERVER}/getresponses?form_id=${id.current}`, {
         method: 'GET', headers: {Authorization: token}
       }).then(async r => {
         setResLoaded(true);

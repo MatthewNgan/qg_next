@@ -32,13 +32,13 @@ export default function Dashboard () {
 
   React.useEffect(() => {
     if (token != null) {
-      fetch(`/api/getAllForms`, {
+      fetch(`${process.env.BACKEND_SERVER}/forms`, {
         method: 'GET',
         headers: {
           Authorization: token
         }
       }).then(async r => {
-        if (r.status !== 200) throw await r.text();
+        if (r.status !== 200 && r.status !== 304) throw await r.text();
         return r.json();
       }).then(data => {
         setFormList(data);
@@ -64,7 +64,7 @@ export default function Dashboard () {
             </Link>
           </div>
           <div>
-            <h2 className='text-2xl mb-4'>Recent forms</h2>
+            <h2 className='text-2xl mb-4'>Your forms</h2>
             <div className='grid grid-cols-3 gap-4 mb-4'>
               {
                 formList.length > 0 ?

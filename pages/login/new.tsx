@@ -13,7 +13,7 @@ export default function New() {
   
   const form = React.useRef<HTMLFormElement>(null);
   const createUser = (data: {username: string; password: string}) => {
-    fetch(`http://${process.env.BACKEND_SERVER}/user/create`, {
+    fetch(`${process.env.BACKEND_SERVER}/user/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
