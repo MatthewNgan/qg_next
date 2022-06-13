@@ -75,7 +75,7 @@ export default function Info() {
       <div className='font-bold mb-4 text-xl'>Total score: {response.totalScore}</div>
       <div className='flex flex-col gap-4'>
         {
-          response.questions.map((question, id) => <div>
+          response.questions.map((question, id) => <div key={id}>
             <h3 className='font-lg font-bold'>Q{id + 1}. {question.title}</h3>
             <div>Response: {question.answer[0].value}</div>
             <div>Correct answer: {question.correctAnswer.answers[0].value}</div>
