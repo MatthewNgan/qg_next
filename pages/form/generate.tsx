@@ -30,7 +30,8 @@ export default function GenerateForm() {
   const [paperId, setPaperId] = React.useState('');
   const [token, setToken] = React.useState<string>(null);
   const [rssFeed, setRssFeed] = React.useState<Feed[]>([]);
-  const [rssLoaded, setRssLoaded] = React.useState(false)
+  const [rssLoaded, setRssLoaded] = React.useState(false);
+  const [rssError, setRssError] = React.useState(null);
 
   const [questionChoices, setQuestionChoices] = React.useState<QuestionChoice[]>([]);
   const [selectedQuestions, setSelectedQuestions] = React.useState<QuestionChoice[]>([]);
@@ -82,7 +83,7 @@ export default function GenerateForm() {
     let title = `${paperName !== '' ? paperName : 'untitled'}`;
     let body = {
       docTitle: docTitle,
-      descr: text,
+      text: text,
       title: title,
       date: date,
       by: by,
@@ -118,21 +119,27 @@ export default function GenerateForm() {
     }).catch(e => console.log(e));
   }
 
-  React.useEffect(() => {
-    if (localStorage.getItem('token') != null && localStorage.getItem('token') !== '') {
-      setToken(localStorage.getItem('token'));
-    }
+  const getRss = () => {
     fetch(
-      `${process.env.RSS_SERVER}/rss?url=http://feeds.bbci.co.uk/news/rss.xml&limit=3&detail=true`
+      `${process.env.BACKEND_SERVER}/rss?url=http://feeds.bbci.co.uk/news/rss.xml&limit=3&detail=true`
     ).then(async r => {
       if (r.status !== 200) throw await r.text();
       return await r.json();
     }).then(feed => {
       setRssLoaded(true);
       setRssFeed(feed);
-      // setRssFeed([...rssFeed, ...feed]);
+    }).catch(error => {
+      setRssLoaded(true);
+      setRssError(error);
+      console.log(error);
     });
-    console.log(process.env)
+  }
+
+  React.useEffect(() => {
+    if (localStorage.getItem('token') != null && localStorage.getItem('token') !== '') {
+      setToken(localStorage.getItem('token'));
+    }
+    getRss();
   }, []);
 
   return (
@@ -153,16 +160,19 @@ export default function GenerateForm() {
                         <div>or find example here (sourced from BBC RSS Feed):</div>
                         <div className='flex flex-row flex-wrap gap-2'>
                           {
-                            rssLoaded ? rssFeed.map((feed) => {
-                              console.log(feed);
-                              return (
-                                <div className='p-3 text-sm border rounded-lg overflow-hidden whitespace-nowrap text-ellipsis hover:underline cursor-pointer leading-none' onClick={() => {
-                                  setText(feed.content);
-                                }}>
-                                  <span className='font-bold'>BBC</span> {feed.title}
-                                </div>
-                              )
-                            }) : <div>Loading...</div>
+                            rssLoaded ? (
+                              rssFeed[0] ?
+                                rssFeed.map((feed) => {
+                                console.log(feed);
+                                return (
+                                  <div className='p-3 text-sm border rounded-lg overflow-hidden whitespace-nowrap text-ellipsis hover:underline cursor-pointer leading-none' onClick={() => {
+                                    setText(feed.content);
+                                  }}>
+                                    <span className='font-bold'>BBC</span> {feed.title}
+                                  </div>
+                                )
+                              }) : <div>An error occured: {rssError.toString()}</div>
+                            ) : <div>Loading...</div>
                           }
                         </div>
                       </div>
