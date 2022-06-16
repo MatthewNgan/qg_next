@@ -34,7 +34,7 @@ export default function Exist() {
         router.push('/form/dashboard');
       }
     }).catch((e) => {
-        setError(e);
+        setError(e.toString());
     });
   }
 
