@@ -20,7 +20,7 @@ export default function GenerateForm() {
 
   const [examDate, setExamDate] = React.useState({
     year: new Date().getFullYear(),
-    month: new Date().getMonth()+1,
+    month: new Date().getMonth() + 1,
     day: new Date().getDate(),
   });
   const [text, setText] = React.useState('');
@@ -30,7 +30,8 @@ export default function GenerateForm() {
   const [paperId, setPaperId] = React.useState('');
   const [token, setToken] = React.useState<string>(null);
   const [rssFeed, setRssFeed] = React.useState<Feed[]>([]);
-  const [rssLoaded, setRssLoaded] = React.useState(false)
+  const [rssLoaded, setRssLoaded] = React.useState(false);
+  const [rssError, setRssError] = React.useState(null);
 
   const [questionChoices, setQuestionChoices] = React.useState<QuestionChoice[]>([]);
   const [selectedQuestions, setSelectedQuestions] = React.useState<QuestionChoice[]>([]);
@@ -82,7 +83,7 @@ export default function GenerateForm() {
     let title = `${paperName !== '' ? paperName : 'untitled'}`;
     let body = {
       docTitle: docTitle,
-      descr: text,
+      text: text,
       title: title,
       date: date,
       by: by,
@@ -118,21 +119,27 @@ export default function GenerateForm() {
     }).catch(e => console.log(e));
   }
 
-  React.useEffect(() => {
-    if (localStorage.getItem('token') != null && localStorage.getItem('token') !== '') {
-      setToken(localStorage.getItem('token'));
-    }
+  const getRss = () => {
     fetch(
-      `${process.env.RSS_SERVER}/rss?url=http://feeds.bbci.co.uk/news/rss.xml&limit=3&detail=true`
+      `${process.env.BACKEND_SERVER}/rss?url=http://feeds.bbci.co.uk/news/rss.xml&limit=3&detail=true`
     ).then(async r => {
       if (r.status !== 200) throw await r.text();
       return await r.json();
     }).then(feed => {
       setRssLoaded(true);
       setRssFeed(feed);
-      // setRssFeed([...rssFeed, ...feed]);
+    }).catch(error => {
+      setRssLoaded(true);
+      setRssError(error);
+      console.log(error);
     });
-    console.log(process.env)
+  }
+
+  React.useEffect(() => {
+    if (localStorage.getItem('token') != null && localStorage.getItem('token') !== '') {
+      setToken(localStorage.getItem('token'));
+    }
+    getRss();
   }, []);
 
   return (
@@ -146,23 +153,26 @@ export default function GenerateForm() {
                 <h2 className='text-2xl font-bold w-full text-center py-4 border-neutral-900 border-b-4'>Generate Questions</h2>
                 <div className='mx-4 py-4 flex flex-col items-center gap-4 relative'>
                   <div className='flex flex-col w-full h-96 border-4 border-neutral-900 rounded-lg overflow-hidden'>
-                    <textarea className={`flex-grow p-4 resize-none border-0${ text ? '' : ` border-b-4`} border-neutral-900 focus:border-neutral-900 focus:ring-0 w-full`} placeholder='Paste your article here' onChange={(e) => setText(e.target.value)} value={text}>
+                    <textarea className={`flex-grow p-4 resize-none border-0${text ? '' : ` border-b-4`} border-neutral-900 focus:border-neutral-900 focus:ring-0 w-full`} placeholder='Paste your article here' onChange={(e) => setText(e.target.value)} value={text}>
                     </textarea>
                     {
                       !text && <div className='p-4 flex flex-col gap-2'>
                         <div>or find example here (sourced from BBC RSS Feed):</div>
                         <div className='flex flex-row flex-wrap gap-2'>
                           {
-                            rssLoaded ? rssFeed.map((feed) => {
-                              console.log(feed);
-                              return (
-                                <div key={feed.link} className='p-3 text-sm border rounded-lg overflow-hidden whitespace-nowrap text-ellipsis hover:underline cursor-pointer leading-none' onClick={() => {
-                                  setText(feed.content);
-                                }}>
-                                  <span className='font-bold'>BBC</span> {feed.title}
-                                </div>
-                              )
-                            }) : <div>Loading...</div>
+                            rssLoaded ? (
+                              rssFeed[0] ?
+                                rssFeed.map((feed) => {
+                                  console.log(feed);
+                                  return (
+                                    <div className='p-3 text-sm border rounded-lg overflow-hidden whitespace-nowrap text-ellipsis hover:underline cursor-pointer leading-none' onClick={() => {
+                                      setText(feed.content);
+                                    }}>
+                                      <span className='font-bold'>BBC</span> {feed.title}
+                                    </div>
+                                  )
+                                }) : <div>An error occured: {rssError.toString()}</div>
+                            ) : <div>Loading...</div>
                           }
                         </div>
                       </div>
