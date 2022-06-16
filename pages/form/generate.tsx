@@ -20,7 +20,7 @@ export default function GenerateForm() {
 
   const [examDate, setExamDate] = React.useState({
     year: new Date().getFullYear(),
-    month: new Date().getMonth()+1,
+    month: new Date().getMonth() + 1,
     day: new Date().getDate(),
   });
   const [text, setText] = React.useState('');
@@ -153,7 +153,7 @@ export default function GenerateForm() {
                 <h2 className='text-2xl font-bold w-full text-center py-4 border-neutral-900 border-b-4'>Generate Questions</h2>
                 <div className='mx-4 py-4 flex flex-col items-center gap-4 relative'>
                   <div className='flex flex-col w-full h-96 border-4 border-neutral-900 rounded-lg overflow-hidden'>
-                    <textarea className={`flex-grow p-4 resize-none border-0${ text ? '' : ` border-b-4`} border-neutral-900 focus:border-neutral-900 focus:ring-0 w-full`} placeholder='Paste your article here' onChange={(e) => setText(e.target.value)} value={text}>
+                    <textarea className={`flex-grow p-4 resize-none border-0${text ? '' : ` border-b-4`} border-neutral-900 focus:border-neutral-900 focus:ring-0 w-full`} placeholder='Paste your article here' onChange={(e) => setText(e.target.value)} value={text}>
                     </textarea>
                     {
                       !text && <div className='p-4 flex flex-col gap-2'>
@@ -163,15 +163,15 @@ export default function GenerateForm() {
                             rssLoaded ? (
                               rssFeed[0] ?
                                 rssFeed.map((feed) => {
-                                console.log(feed);
-                                return (
-                                  <div className='p-3 text-sm border rounded-lg overflow-hidden whitespace-nowrap text-ellipsis hover:underline cursor-pointer leading-none' onClick={() => {
-                                    setText(feed.content);
-                                  }}>
-                                    <span className='font-bold'>BBC</span> {feed.title}
-                                  </div>
-                                )
-                              }) : <div>An error occured: {rssError.toString()}</div>
+                                  console.log(feed);
+                                  return (
+                                    <div className='p-3 text-sm border rounded-lg overflow-hidden whitespace-nowrap text-ellipsis hover:underline cursor-pointer leading-none' onClick={() => {
+                                      setText(feed.content);
+                                    }}>
+                                      <span className='font-bold'>BBC</span> {feed.title}
+                                    </div>
+                                  )
+                                }) : <div>An error occured: {rssError.toString()}</div>
                             ) : <div>Loading...</div>
                           }
                         </div>
