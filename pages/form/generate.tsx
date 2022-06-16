@@ -165,7 +165,7 @@ export default function GenerateForm() {
                                 rssFeed.map((feed) => {
                                   console.log(feed);
                                   return (
-                                    <div className='p-3 text-sm border rounded-lg overflow-hidden whitespace-nowrap text-ellipsis hover:underline cursor-pointer leading-none' onClick={() => {
+                                    <div key={feed.title} className='p-3 text-sm border rounded-lg overflow-hidden whitespace-nowrap text-ellipsis hover:underline cursor-pointer leading-none' onClick={() => {
                                       setText(feed.content);
                                     }}>
                                       <span className='font-bold'>BBC</span> {feed.title}
