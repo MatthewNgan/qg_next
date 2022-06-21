@@ -1,8 +1,10 @@
 import React from 'react';
 import Header from '../template/header';
-
+import { useRouter } from 'next/router';
 
 export default function General() {
+
+  const router = useRouter();
 
   const changePwdForm = React.useRef<HTMLFormElement>(null);
 
@@ -31,7 +33,12 @@ export default function General() {
         }
       })
     }
-  }, [changePwdForm])
+  }, [changePwdForm]);
+
+  React.useEffect(() => {
+    if (localStorage.getItem('token') == null || localStorage.getItem('token') === '')
+      router.push('/');
+  }, [router]);
 
   return (
     <div className='min-h-screen flex flex-col'>
@@ -58,6 +65,12 @@ export default function General() {
                 <button type='submit' className='p-2 bg-green-600 text-white rounded-md hover:underline'>Submit</button>
               </div>
             </form>
+            <button className='p-4 bg-red-600 text-white rounded-lg hover:underline' onClick={() => {
+              localStorage.removeItem('token');
+              router.push('/');
+            }}>
+              Logout
+            </button>
           </div>
         </div>
       </div>

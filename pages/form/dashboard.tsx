@@ -89,12 +89,6 @@ export default function Dashboard () {
                 )
               }
             </div>
-            <button className='p-4 bg-red-600 text-white rounded-lg hover:underline' onClick={() => {
-              localStorage.removeItem('token');
-              router.push('/');
-            }}>
-              Logout
-            </button>
           </div>
         </div>
       </div>
