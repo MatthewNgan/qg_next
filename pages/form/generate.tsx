@@ -3,6 +3,7 @@ import Link from 'next/link';
 import React from 'react';
 import Header from '../template/header';
 import DateSelect from '../../utils/DateSelect';
+import { useRouter } from 'next/router';
 
 interface QuestionChoice {
   question: string;
@@ -17,6 +18,12 @@ interface Feed {
 }
 
 export default function GenerateForm() {
+
+  const router = useRouter();
+  React.useEffect(() => {
+    if (localStorage.getItem('token') == null || localStorage.getItem('token') === '')
+      router.push('/');
+  }, [router]);
 
   const [examDate, setExamDate] = React.useState({
     year: new Date().getFullYear(),
@@ -33,10 +40,17 @@ export default function GenerateForm() {
   const [rssLoaded, setRssLoaded] = React.useState(false);
   const [rssError, setRssError] = React.useState(null);
 
+  const [qgLoaded, setQgLoaded] = React.useState(false);
+  const [qgError, setQgError] = React.useState<string>(null);
+  const [formGenFinished, setFormGenFinished] = React.useState(false);
+  const [formGenError, setFormGenError] = React.useState<string>(null);
+
   const [questionChoices, setQuestionChoices] = React.useState<QuestionChoice[]>([]);
   const [selectedQuestions, setSelectedQuestions] = React.useState<QuestionChoice[]>([]);
+
   const generateButton = React.useRef<HTMLButtonElement>();
   const generateFormButton = React.useRef<HTMLButtonElement>();
+  const pageElem = React.useRef<HTMLDivElement>();
 
   const generateQuestions = async (text: string) => {
     if (generateButton.current) {
@@ -55,6 +69,7 @@ export default function GenerateForm() {
       if (generateButton.current) {
         generateButton.current.disabled = false;
         generateButton.current.innerText = 'Generate Questions';
+        setQgLoaded(true);
       }
       if (r.status !== 200) throw await r.text();
       return r.json();
@@ -67,7 +82,14 @@ export default function GenerateForm() {
       }
       setQuestionChoices(questionChoices);
       setSelectedQuestions([]);
+      setQgError(null);
     }).catch(e => {
+      if (generateButton.current) {
+        generateButton.current.disabled = false;
+        generateButton.current.innerText = 'Generate Questions';
+        setQgLoaded(true);
+      }
+      setQgError(e.toString());
       console.log(e);
     });
   };
@@ -107,16 +129,27 @@ export default function GenerateForm() {
         'Authorization': token
       }
     }).then(async r => {
+      if (generateFormButton.current) {
+        generateFormButton.current.disabled = false;
+        generateFormButton.current.innerText = 'Generate Google Form';
+        setFormGenFinished(true);
+      }
       if (r.status !== 200) throw await r.text();
       return await r.json();
     }).then(res => {
       setPaperLink(res.link);
       setPaperId(res.id);
-      if (generateFormButton.current) {
-        generateFormButton.current.disabled = false;
-        generateFormButton.current.innerText = 'Generate Google Form';
+      setFormGenError(null);
+      pageElem.current.scrollTop = 0;
+    }).catch(e => {
+      if (generateButton.current) {
+        generateButton.current.disabled = false;
+        generateButton.current.innerText = 'Generate Questions';
+        setQgLoaded(true);
       }
-    }).catch(e => console.log(e));
+      setFormGenError(e);
+      console.log(e);
+    });
   }
 
   const getRss = () => {
@@ -143,7 +176,7 @@ export default function GenerateForm() {
   }, []);
 
   return (
-    <div className='min-h-screen flex flex-col'>
+    <div className='min-h-screen flex flex-col' ref={pageElem}>
       <Header />
       <div className='py-20 px-6 flex-grow'>
         <div className='container mx-auto'>
@@ -183,47 +216,49 @@ export default function GenerateForm() {
                   }}>Generate Questions</button>
                 </div>
                 {
-                  questionChoices.length > 0 &&
-                  <div className='flex flex-col rounded-lg'>
-                    <div className='px-6 flex flex-col'>
-                      {
-                        questionChoices.length > 0 &&
-                        <button className='ml-auto text-xl rounded-lg font-bold hover:underline' onClick={() => {
-                          setSelectedQuestions(questionChoices);
-                          setQuestionChoices([]);
-                        }}>Select All</button>
-                      }
-                      {
-                        questionChoices.map((choice, index) =>
-                          <div key={index} className={`py-6 px-2${index < questionChoices.length - 1 ? ' border-b-2' : ''}`}>
-                            <div className='flex flex-row justify-between items-center mb-4'>
-                              <h3 className='text-2xl'>Question {index + 1}</h3>
-                              <input type='checkbox' className='p-3 rounded-md text-neutral-900 focus:ring-0' onChange={e => {
-                                if (e.target.checked) {
-                                  setSelectedQuestions([
-                                    ...selectedQuestions,
-                                    choice
-                                  ]);
-                                  setQuestionChoices([
-                                    ...questionChoices.slice(0, index),
-                                    ...questionChoices.slice(index + 1)
-                                  ]);
-                                  e.target.checked = false;
-                                }
-                              }} />
-                            </div>
-                            <div>
-                              <div>{choice.question}</div>
-                              <div className='flex flex-row gap-2 items-center mt-2'>
-                                <div>Answer:</div>
-                                <div className='font-bold overflow-hidden text-ellipsis whitespace-nowrap'>{choice.answer}</div>
+                  qgLoaded && (
+                    qgError ? <div>An error occured: {qgError}</div> : (
+                      <div className='flex flex-col rounded-lg'>
+                        <div className='px-6 flex flex-col'>
+                          {
+                            <button className='ml-auto text-xl rounded-lg font-bold hover:underline' onClick={() => {
+                              setSelectedQuestions(questionChoices);
+                              setQuestionChoices([]);
+                            }}>Select All</button>
+                          }
+                          {
+                            questionChoices.map((choice, index) =>
+                              <div key={index} className={`py-6 px-2${index < questionChoices.length - 1 ? ' border-b-2' : ''}`}>
+                                <div className='flex flex-row justify-between items-center mb-4'>
+                                  <h3 className='text-2xl'>Question {index + 1}</h3>
+                                  <input type='checkbox' className='p-3 rounded-md text-neutral-900 focus:ring-0' onChange={e => {
+                                    if (e.target.checked) {
+                                      setSelectedQuestions([
+                                        ...selectedQuestions,
+                                        choice
+                                      ]);
+                                      setQuestionChoices([
+                                        ...questionChoices.slice(0, index),
+                                        ...questionChoices.slice(index + 1)
+                                      ]);
+                                      e.target.checked = false;
+                                    }
+                                  }} />
+                                </div>
+                                <div>
+                                  <div>{choice.question}</div>
+                                  <div className='flex flex-row gap-2 items-center mt-2'>
+                                    <div>Answer:</div>
+                                    <div className='font-bold overflow-hidden text-ellipsis whitespace-nowrap'>{choice.answer}</div>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        )
-                      }
-                    </div>
-                  </div>
+                            )
+                          }
+                        </div>
+                      </div>
+                    )
+                  )
                 }
               </div>
             </div>
@@ -342,6 +377,9 @@ export default function GenerateForm() {
                       </button>
                     }
                   </div>
+                  {
+                    formGenFinished && formGenError && <div>An error occured: { formGenError }</div>
+                  }
                 </>
               }
             </div>
