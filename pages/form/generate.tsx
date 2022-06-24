@@ -39,6 +39,8 @@ export default function GenerateForm() {
   const [rssFeed, setRssFeed] = React.useState<Feed[]>([]);
   const [rssLoaded, setRssLoaded] = React.useState(false);
   const [rssError, setRssError] = React.useState(null);
+  const [summarizing, setSummarizing] = React.useState(false);
+  const [sumError, setSumError] = React.useState(null);
 
   const [qgLoaded, setQgLoaded] = React.useState(false);
   const [qgError, setQgError] = React.useState<string>(null);
@@ -51,6 +53,8 @@ export default function GenerateForm() {
   const generateButton = React.useRef<HTMLButtonElement>();
   const generateFormButton = React.useRef<HTMLButtonElement>();
   const pageElem = React.useRef<HTMLDivElement>();
+
+  const leastCharToSum = 1500;
 
   const generateQuestions = async (text: string) => {
     if (generateButton.current) {
@@ -154,7 +158,7 @@ export default function GenerateForm() {
 
   const getRss = () => {
     fetch(
-      `${process.env.BACKEND_SERVER}/rss?url=http://feeds.bbci.co.uk/news/rss.xml&limit=3&detail=true`
+      `${process.env.BACKEND_SERVER}/rss?url=http://feeds.bbci.co.uk/news/rss.xml&limit=3&detail=true&random=true`
     ).then(async r => {
       if (r.status !== 200) throw await r.text();
       return await r.json();
@@ -175,10 +179,36 @@ export default function GenerateForm() {
     getRss();
   }, []);
 
+  const summarize = (size: 'short' | 'medium') => {
+    setSummarizing(true);
+    const p = size === 'short' ? 0.1 : 0.5
+    fetch(`${process.env.BACKEND_SERVER}/sum`, {
+      method: 'POST',
+      body: JSON.stringify({
+        text: text,
+        percent: p
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+      }
+    }).then(async r => {
+      if (r.status !== 200) throw await r.text();
+      return await r.json();
+    }).then((result : {outputs: string}) => {
+      const output = result.outputs;
+      setText(output);
+      setSummarizing(false);
+    }).catch(error => {
+      setSumError(error);
+      setSummarizing(false);
+    })
+  }
+
   return (
     <div className='min-h-screen flex flex-col' ref={pageElem}>
       <Header />
-      <div className='py-20 px-6 flex-grow'>
+      <div className='py-20 flex-grow'>
         <div className='container mx-auto'>
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 px-6'>
             <div className='flex flex-col gap-6'>
@@ -186,10 +216,10 @@ export default function GenerateForm() {
                 <h2 className='text-2xl font-bold w-full text-center py-4 border-neutral-900 border-b-4'>Generate Questions</h2>
                 <div className='mx-4 py-4 flex flex-col items-center gap-4 relative'>
                   <div className='flex flex-col w-full h-96 border-4 border-neutral-900 rounded-lg overflow-hidden'>
-                    <textarea className={`flex-grow p-4 resize-none border-0${text ? '' : ` border-b-4`} border-neutral-900 focus:border-neutral-900 focus:ring-0 w-full`} placeholder='Paste your article here' onChange={(e) => setText(e.target.value)} value={text}>
+                    <textarea className={`flex-grow p-4 resize-none border-0 border-neutral-900 focus:border-neutral-900 focus:ring-0 w-full`} placeholder='Paste your article here' onChange={(e) => setText(e.target.value)} value={text}>
                     </textarea>
                     {
-                      !text && <div className='p-4 flex flex-col gap-2'>
+                      !text && <div className='p-4 flex flex-col gap-2 border-t-4 border-neutral-900'>
                         <div>or find example here (sourced from BBC RSS Feed):</div>
                         <div className='flex flex-row flex-wrap gap-2'>
                           {
@@ -208,6 +238,16 @@ export default function GenerateForm() {
                             ) : <div>Loading...</div>
                           }
                         </div>
+                      </div>
+                    }
+                    {
+                      text.length > leastCharToSum && <div className='p-4 border-t-4 border-neutral-900'>
+                        {
+                          !summarizing ?
+                          <>
+                            Text too long? Summarize the text into <a className='cursor-pointer text-blue-600 font-bold hover:underline' onClick={() => summarize('short')}>short</a> or <a className='cursor-pointer text-blue-600 font-bold hover:underline' onClick={() => summarize('medium')}>medium</a> length.
+                          </> : <>Summarizing...</>
+                        }
                       </div>
                     }
                   </div>

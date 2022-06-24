@@ -70,7 +70,7 @@ export default function Info() {
     }
   }, [id, token]);
 
-  const ResponseItem = React.useCallback(({ response }) => {
+  const ResponseItem = React.useCallback(({ response }: { response: Response }) => {
     return (<>
       <div className='font-bold mb-4 text-xl'>Total score: {response.totalScore}</div>
       <div className='flex flex-col gap-4'>
